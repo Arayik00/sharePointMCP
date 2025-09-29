@@ -1,0 +1,19 @@
+{
+	"servers": {
+		"sharepoint-js": {
+			"command": "node",
+			"args": ["src/index.js"],
+			"env": {
+				"SHP_ID_APP": "your-azure-app-id",
+				"SHP_SITE_URL": "https://your-tenant.sharepoint.com/sites/your-site",
+				"SHP_DOC_LIBRARY": "",
+				"SHP_TENANT_ID": "your-tenant-id",
+				"SHP_MAX_DEPTH": "15",
+				"SHP_MAX_FOLDERS_PER_LEVEL": "100",
+				"SHP_LEVEL_DELAY": "0.5",
+				"SHP_CERT_PFX_PATH": "./certificate.pfx",
+				"SHP_CERT_PFX_PASSWORD": "your-cert-password"
+			}
+		}
+	}
+}
