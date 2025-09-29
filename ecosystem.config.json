@@ -1,0 +1,45 @@
+{
+  "apps": [
+    {
+      "name": "mcp-sharepoint-api",
+      "script": "src/server.js",
+      "args": ["api"],
+      "cwd": "/opt/mcp-sharepoint",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production",
+        "SERVER_MODE": "api",
+        "PORT": "3000"
+      },
+      "env_file": ".env",
+      "log_file": "logs/api-server.log",
+      "error_file": "logs/api-error.log",
+      "out_file": "logs/api-out.log",
+      "pid_file": "pids/api-server.pid",
+      "restart_delay": 4000,
+      "max_restarts": 10,
+      "min_uptime": "10s"
+    },
+    {
+      "name": "mcp-sharepoint-mcp",
+      "script": "src/server.js",
+      "args": ["mcp"],
+      "cwd": "/opt/mcp-sharepoint",
+      "instances": 1,
+      "exec_mode": "fork",
+      "env": {
+        "NODE_ENV": "production",
+        "SERVER_MODE": "mcp"
+      },
+      "env_file": ".env",
+      "log_file": "logs/mcp-server.log",
+      "error_file": "logs/mcp-error.log",
+      "out_file": "logs/mcp-out.log",
+      "pid_file": "pids/mcp-server.pid",
+      "restart_delay": 4000,
+      "max_restarts": 10,
+      "min_uptime": "10s"
+    }
+  ]
+}

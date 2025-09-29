@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  mcp-sharepoint:
+    build: .
+    environment:
+      - SHP_ID_APP=${SHP_ID_APP}
+      - SHP_SITE_URL=${SHP_SITE_URL}
+      - SHP_DOC_LIBRARY=${SHP_DOC_LIBRARY}
+      - SHP_TENANT_ID=${SHP_TENANT_ID}
+      - SHP_MAX_DEPTH=${SHP_MAX_DEPTH}
+      - SHP_MAX_FOLDERS_PER_LEVEL=${SHP_MAX_FOLDERS_PER_LEVEL}
+      - SHP_LEVEL_DELAY=${SHP_LEVEL_DELAY}
+      - SHP_CERT_PFX_PATH=/app/certs/certificate.pfx
+      - SHP_CERT_PFX_PASSWORD=${SHP_CERT_PFX_PASSWORD}
+      - NODE_ENV=production
+    volumes:
+      - ./certificate.pfx:/app/certs/certificate.pfx:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
