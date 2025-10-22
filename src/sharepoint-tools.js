@@ -196,4 +196,110 @@ export class SharePointTools {
       };
     }
   }
+
+  async updateDocument(folderName, fileName, content) {
+    try {
+      const filePath = `${this.getDrivePath(folderName)}/${fileName}`.replace(
+        /\/+/g,
+        "/"
+      );
+      logger.info(`Updating document: ${filePath}`);
+
+      const driveId = this.client.drives[0]?.id;
+      if (!driveId) {
+        throw new Error("No drives available");
+      }
+
+      await this.client.uploadFile(driveId, filePath, content);
+      
+      return {
+        success: true,
+        message: `Document ${fileName} updated successfully`,
+      };
+    } catch (error) {
+      logger.error("Error updating document:", error);
+      return {
+        success: false,
+        message: `Failed to update document: ${error.message}`,
+        error: error.message,
+      };
+    }
+  }
+
+  async uploadDocument(folderName, fileName, content, overwrite = false) {
+    try {
+      const filePath = `${this.getDrivePath(folderName)}/${fileName}`.replace(
+        /\/+/g,
+        "/"
+      );
+      logger.info(`Uploading document: ${filePath}`);
+
+      const driveId = this.client.drives[0]?.id;
+      if (!driveId) {
+        throw new Error("No drives available");
+      }
+
+      await this.client.uploadFile(driveId, filePath, content);
+      
+      return {
+        success: true,
+        message: `Document ${fileName} uploaded successfully`,
+      };
+    } catch (error) {
+      logger.error("Error uploading document:", error);
+      return {
+        success: false,
+        message: `Failed to upload document: ${error.message}`,
+        error: error.message,
+      };
+    }
+  }
+
+  async createFolder(parentPath, folderName) {
+    try {
+      const driveId = this.client.drives[0]?.id;
+      if (!driveId) {
+        throw new Error("No drives available");
+      }
+
+      const parentFolderPath = this.getDrivePath(parentPath);
+      await this.client.createFolder(driveId, parentFolderPath, folderName);
+      
+      return {
+        success: true,
+        message: `Folder ${folderName} created successfully`,
+      };
+    } catch (error) {
+      logger.error("Error creating folder:", error);
+      return {
+        success: false,
+        message: `Failed to create folder: ${error.message}`,
+        error: error.message,
+      };
+    }
+  }
+
+  async deleteItem(itemPath) {
+    try {
+      const driveId = this.client.drives[0]?.id;
+      if (!driveId) {
+        throw new Error("No drives available");
+      }
+
+      const fullPath = this.getDrivePath(itemPath);
+      await this.client.deleteItem(driveId, fullPath);
+      
+      return {
+        success: true,
+        message: `Item ${itemPath} deleted successfully`,
+      };
+    } catch (error) {
+      logger.error("Error deleting item:", error);
+      return {
+        success: false,
+        message: `Failed to delete item: ${error.message}`,
+        error: error.message,
+      };
+    }
+  }
 }

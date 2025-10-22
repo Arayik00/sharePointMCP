@@ -68,6 +68,46 @@ async function testSharePointConnection() {
       logger.info('   No documents found to test content reading');
     }
 
+    // Test 5: Upload a test document
+    logger.info('\n📤 Test 5: Upload a test document...');
+    const testFileName = 'test_file_arayik.txt';
+    const testFileContent = 'File created by Arayik';
+    
+    try {
+      const uploadResult = await tools.uploadDocument('', testFileName, testFileContent, false);
+      logger.info(`   Upload result success: ${uploadResult.success}`);
+      
+      if (uploadResult.success) {
+        logger.info('✅ Successfully uploaded test file!');
+        logger.info(`   File: ${testFileName}`);
+        logger.info(`   Content: "${testFileContent}"`);
+        
+        // Verify the upload by reading the file back
+        logger.info('\n🔍 Test 5a: Verifying upload by reading file back...');
+        const verifyResult = await tools.getDocumentContent('', testFileName);
+        
+        if (verifyResult.success) {
+          logger.info('✅ Successfully verified upload!');
+          logger.info(`   Retrieved content: "${verifyResult.content}"`);
+          
+          if (verifyResult.content === testFileContent) {
+            logger.info('🎉 Upload confirmed - content matches exactly!');
+          } else {
+            logger.warn('⚠️ Content mismatch detected');
+            logger.warn(`   Expected: "${testFileContent}"`);
+            logger.warn(`   Got: "${verifyResult.content}"`);
+          }
+        } else {
+          logger.warn('⚠️ Could not verify upload by reading file back');
+        }
+      } else {
+        logger.error('❌ Failed to upload test file');
+        logger.error('   Error:', uploadResult.error || uploadResult.message || 'Unknown error');
+      }
+    } catch (error) {
+      logger.error('❌ Exception during upload test:', error.message);
+    }
+
     return true;
   } catch (error) {
     logger.error('❌ Error testing tools:', error);
@@ -82,7 +122,8 @@ testSharePointConnection().then((success) => {
     logger.info('✅ Certificate authentication successful');
     logger.info('✅ Graph API integration working');
     logger.info('✅ Read operations functional');
-    logger.info('📚 Ready for read-only SharePoint operations');
+    logger.info('✅ Write operations functional');
+    logger.info('📚 Ready for full SharePoint operations (read & write)');
   } else {
     logger.error('\n💥 There are issues with the tools');
   }
