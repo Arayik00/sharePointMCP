@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: sharepoint-mcp-server
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/start.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVER_MODE
+        value: api
+      - key: PORT
+        sync: false
+    autoDeploy: true
+    healthCheckPath: /health
