@@ -169,7 +169,30 @@ export function getCertificatePrivateKey(certPath, certPassword = "") {
     
     // Check if this looks like a PKCS#12 file
     const magicBytes = certData.slice(0, 4);
+    const hexString = certData.slice(0, 32).toString('hex');
     console.log(`📋 Magic bytes: ${magicBytes.toString('hex')}`);
+    
+    // Detect UTF-8 corruption (efbfbd = UTF-8 replacement character)
+    if (hexString.includes('efbfbd')) {
+      console.error('🚨 CERTIFICATE FILE CORRUPTION DETECTED!');
+      console.error('📋 The certificate file contains UTF-8 replacement characters (�)');
+      console.error('📋 This means the binary PKCS#12 file was corrupted during upload/transfer');
+      console.error('');
+      console.error('🔧 SOLUTIONS:');
+      console.error('1. Re-upload the certificate file in binary mode');
+      console.error('2. Check that the file wasn\'t opened/saved in a text editor');
+      console.error('3. Verify the original certificate.pfx file is not corrupted');
+      console.error('4. Use base64 encoding for safer transfer:');
+      console.error('   - Convert: base64 certificate.pfx > certificate.b64');
+      console.error('   - Upload the .b64 file and decode it in the environment');
+      throw new Error('Certificate file is corrupted - contains UTF-8 replacement characters');
+    }
+    
+    if (!hexString.startsWith('3082') && !hexString.startsWith('3081')) {
+      console.warn('⚠️  Certificate doesn\'t start with expected PKCS#12 magic bytes');
+      console.warn('📋 Expected: 3082xxxx or 3081xxxx (ASN.1 SEQUENCE)');
+      console.warn(`📋 Found: ${magicBytes.toString('hex')}`);
+    }
     
     // Try different encoding approaches
     let p12Asn1;

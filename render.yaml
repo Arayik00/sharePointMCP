@@ -5,6 +5,8 @@ services:
     plan: free
     buildCommand: npm install
     startCommand: npm start
+    # Alternative start command for base64 certificates:
+    # startCommand: node start-with-cert.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,5 +14,10 @@ services:
         value: api
       - key: PORT
         sync: false
+      # Uncomment for base64 certificate handling:
+      # - key: USE_BASE64_CERT
+      #   value: true
+      # - key: SHP_CERT_BASE64_PATH
+      #   value: /opt/render/project/certificate.b64
     autoDeploy: true
     healthCheckPath: /health
