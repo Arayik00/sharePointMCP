@@ -18,6 +18,6 @@ services:
       # - key: USE_BASE64_CERT
       #   value: true
       # - key: SHP_CERT_BASE64_PATH
-      #   value: /opt/render/project/certificate.b64
+      #   value: /opt/render/project/hearst-sharepoint.b64
     autoDeploy: true
     healthCheckPath: /health

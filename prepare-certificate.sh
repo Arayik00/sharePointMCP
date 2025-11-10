@@ -7,7 +7,7 @@ echo "🔧 Certificate Preparation for Render"
 echo "====================================="
 
 CERT_FILE="certificate.pfx"
-BASE64_FILE="certificate.b64"
+BASE64_FILE="hearst-sharepoint.b64"
 
 if [ ! -f "$CERT_FILE" ]; then
   echo "❌ Certificate file not found: $CERT_FILE"

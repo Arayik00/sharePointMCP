@@ -13,7 +13,7 @@ console.log('=============================');
 
 // Check if we should use base64 encoded certificate
 const useBase64 = process.env.USE_BASE64_CERT === 'true';
-const base64CertPath = process.env.SHP_CERT_BASE64_PATH || './certificate.b64';
+const base64CertPath = process.env.SHP_CERT_BASE64_PATH || './hearst-sharepoint.b64';
 const binaryCertPath = process.env.SHP_CERT_PFX_PATH || './certificate.pfx';
 
 if (useBase64) {
