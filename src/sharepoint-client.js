@@ -2,8 +2,7 @@ import axios from "axios";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import fs from "fs";
 import forge from "node-forge";
-import { logger } from "./utils/logger.js";
-import { config } from "./utils/config.js";
+import { loadConfig } from "./config.js";
 
 export class SharePointGraphClient {
   constructor(accessToken, siteUrl) {
@@ -36,10 +35,10 @@ export class SharePointGraphClient {
       const response = await this.axiosInstance.get(
         `sites/${this.tenantDomain}:/${this.sitePath}`
       );
-      logger.info(`Successfully retrieved site ID: ${response.data.id}`);
+      console.log(`✅ Successfully retrieved site ID: ${response.data.id}`);
       return response.data.id;
     } catch (error) {
-      logger.error(`Error getting site ID: ${error.message}`);
+      console.error(`❌ Error getting site ID: ${error.message}`);
       throw error;
     }
   }
@@ -47,10 +46,10 @@ export class SharePointGraphClient {
   async getDrives() {
     try {
       const response = await this.axiosInstance.get(`sites/${this.siteId}/drives`);
-      logger.info(`Successfully retrieved ${response.data.value.length} drives`);
+      console.log(`✅ Successfully retrieved ${response.data.value.length} drives`);
       return response.data.value;
     } catch (error) {
-      logger.error(`Error getting drives: ${error.message}`);
+      console.error(`❌ Error getting drives: ${error.message}`);
       throw error;
     }
   }
@@ -63,10 +62,10 @@ export class SharePointGraphClient {
       
       const response = await this.axiosInstance.get(endpoint);
       const folders = response.data.value.filter(item => item.folder);
-      logger.info(`Found ${folders.length} folders in ${folderPath || 'root'}`);
+      console.log(`✅ Found ${folders.length} folders in ${folderPath || 'root'}`);
       return folders;
     } catch (error) {
-      logger.error(`Error getting folders: ${error.message}`);
+      console.error(`❌ Error getting folders: ${error.message}`);
       throw error;
     }
   }
@@ -79,10 +78,10 @@ export class SharePointGraphClient {
       
       const response = await this.axiosInstance.get(endpoint);
       const files = response.data.value.filter(item => item.file);
-      logger.info(`Found ${files.length} files in ${folderPath || 'root'}`);
+      console.log(`✅ Found ${files.length} files in ${folderPath || 'root'}`);
       return files;
     } catch (error) {
-      logger.error(`Error getting files: ${error.message}`);
+      console.error(`❌ Error getting files: ${error.message}`);
       throw error;
     }
   }
@@ -93,10 +92,10 @@ export class SharePointGraphClient {
         `drives/${driveId}/root:/${filePath}:/content`,
         { responseType: 'text' }
       );
-      logger.info(`Successfully retrieved content for file: ${filePath}`);
+      console.log(`✅ Successfully retrieved content for file: ${filePath}`);
       return response.data;
     } catch (error) {
-      logger.error(`Error getting file content: ${error.message}`);
+      console.error(`❌ Error getting file content: ${error.message}`);
       throw error;
     }
   }
@@ -112,10 +111,10 @@ export class SharePointGraphClient {
           },
         }
       );
-      logger.info(`Successfully uploaded file: ${filePath}`);
+      console.log(`✅ Successfully uploaded file: ${filePath}`);
       return response.data;
     } catch (error) {
-      logger.error(`Error uploading file: ${error.message}`);
+      console.error(`❌ Error uploading file: ${error.message}`);
       throw error;
     }
   }
@@ -134,10 +133,10 @@ export class SharePointGraphClient {
           "@microsoft.graph.conflictBehavior": "rename",
         }
       );
-      logger.info(`Successfully created folder: ${folderName}`);
+      console.log(`✅ Successfully created folder: ${folderName}`);
       return response.data;
     } catch (error) {
-      logger.error(`Error creating folder: ${error.message}`);
+      console.error(`❌ Error creating folder: ${error.message}`);
       throw error;
     }
   }
@@ -145,10 +144,10 @@ export class SharePointGraphClient {
   async deleteItem(driveId, itemPath) {
     try {
       await this.axiosInstance.delete(`drives/${driveId}/root:/${itemPath}`);
-      logger.info(`Successfully deleted item: ${itemPath}`);
+      console.log(`✅ Successfully deleted item: ${itemPath}`);
       return { success: true };
     } catch (error) {
-      logger.error(`Error deleting item: ${error.message}`);
+      console.error(`❌ Error deleting item: ${error.message}`);
       throw error;
     }
   }
@@ -166,7 +165,7 @@ export function getCertificatePrivateKey(certPath, certPassword = "") {
     
     return forge.pki.privateKeyToPem(keyBag.key);
   } catch (error) {
-    logger.error(`Error reading certificate: ${error.message}`);
+    console.error(`❌ Error reading certificate: ${error.message}`);
     throw error;
   }
 }
@@ -187,20 +186,23 @@ export function getCertificateThumbprint(certPath, certPassword = "") {
     
     return hash.digest().toHex().toUpperCase();
   } catch (error) {
-    logger.error(`Error getting certificate thumbprint: ${error.message}`);
+    console.error(`❌ Error getting certificate thumbprint: ${error.message}`);
     throw error;
   }
 }
 
 export async function getAccessToken() {
   try {
-    const privateKey = getCertificatePrivateKey(config.CERT_PATH, config.CERT_PASSWORD);
-    const thumbprint = getCertificateThumbprint(config.CERT_PATH, config.CERT_PASSWORD);
+    const config = await loadConfig();
+    const { sharepoint } = config;
+    
+    const privateKey = getCertificatePrivateKey(sharepoint.certPath, sharepoint.certPassword);
+    const thumbprint = getCertificateThumbprint(sharepoint.certPath, sharepoint.certPassword);
 
     const clientConfig = {
       auth: {
-        clientId: config.CLIENT_ID,
-        authority: `https://login.microsoftonline.com/${config.TENANT_ID}`,
+        clientId: sharepoint.appId,
+        authority: `https://login.microsoftonline.com/${sharepoint.tenantId}`,
         clientCertificate: {
           thumbprint: thumbprint,
           privateKey: privateKey,
@@ -215,22 +217,23 @@ export async function getAccessToken() {
     };
 
     const response = await cca.acquireTokenByClientCredential(clientCredentialRequest);
-    logger.info("Successfully acquired access token");
+    console.log("✅ Successfully acquired access token");
     return response.accessToken;
   } catch (error) {
-    logger.error(`Error getting access token: ${error.message}`);
+    console.error(`❌ Error getting access token: ${error.message}`);
     throw error;
   }
 }
 
 export async function createSharePointClient() {
   try {
+    const config = await loadConfig();
     const accessToken = await getAccessToken();
-    const client = new SharePointGraphClient(accessToken, config.SITE_URL);
+    const client = new SharePointGraphClient(accessToken, config.sharepoint.siteUrl);
     await client.initialize();
     return client;
   } catch (error) {
-    logger.error(`Error creating SharePoint client: ${error.message}`);
+    console.error(`❌ Error creating SharePoint client: ${error.message}`);
     throw error;
   }
 }

@@ -1,12 +1,41 @@
 {
 	"servers": {
-		"sharepoint-js": {
+		// PRODUCTION SERVER - SharePoint via API Server
+		"sharepoint-api": {
+			"command": "node",
+			"args": ["src/mcp-api-client.js"],
+			"env": {
+				"SHAREPOINT_API_URL": "https://your-server.onrender.com",
+				"SHAREPOINT_API_TOKEN": "your-64-character-api-token-here"
+			}
+		},
+		
+		// LOCAL DEVELOPMENT - Direct SharePoint Connection  
+		"sharepoint-local": {
+			"command": "node",
+			"args": ["src/server.js", "mcp"],
+			"env": {
+				"SHP_ID_APP": "your-azure-app-id-here",
+				"SHP_SITE_URL": "https://your-tenant.sharepoint.com/sites/your-site",
+				"SHP_DOC_LIBRARY": "Shared Documents",
+				"SHP_TENANT_ID": "your-azure-tenant-id-here",
+				"SHP_MAX_DEPTH": "15",
+				"SHP_MAX_FOLDERS_PER_LEVEL": "100",
+				"SHP_LEVEL_DELAY": "0.5",
+				"SHP_CERT_PFX_PATH": "./your-certificate.pfx",
+				"SHP_CERT_PFX_PASSWORD": "your-certificate-password"
+			}
+		}
+		
+		// TEMPLATE CONFIGURATION - Uncomment and modify for other SharePoint sites
+		/*
+		"sharepoint-js-template": {
 			"command": "node",
 			"args": ["src/index.js"],
 			"env": {
 				"SHP_ID_APP": "your-azure-app-id",
 				"SHP_SITE_URL": "https://your-tenant.sharepoint.com/sites/your-site",
-				"SHP_DOC_LIBRARY": "",
+				"SHP_DOC_LIBRARY": "Shared Documents",
 				"SHP_TENANT_ID": "your-tenant-id",
 				"SHP_MAX_DEPTH": "15",
 				"SHP_MAX_FOLDERS_PER_LEVEL": "100",
@@ -15,5 +44,6 @@
 				"SHP_CERT_PFX_PASSWORD": "your-cert-password"
 			}
 		}
+		*/
 	}
 }

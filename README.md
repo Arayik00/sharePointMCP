@@ -214,7 +214,140 @@ SHP_LEVEL_DELAY=0.5                        # Delay between levels (seconds)
 
 ---
 
-## 🐳 **Deployment Options**
+## � **Server-Side Credential Management**
+
+### **🛡️ Why Server-Side Credentials?**
+
+This MCP server implements **enterprise-grade security** by storing SharePoint credentials securely on the server and providing your own API authentication tokens. This approach offers several advantages:
+
+- **🔒 Enhanced Security** - SharePoint credentials never leave the server
+- **🎫 Custom Authentication** - Generate your own API tokens
+- **🔄 Easy Rotation** - Update credentials without touching client configurations
+- **📊 Audit Trail** - Track API usage with your own tokens
+- **🚀 Scalability** - Multiple clients can use the same SharePoint connection
+
+### **📁 Secure Configuration Structure**
+
+```bash
+/opt/sharepoint-mcp/                    # Production directory structure
+├── config/
+│   └── .env.production                 # Environment variables (600 permissions)
+├── certs/
+│   └── certificate.pfx                 # X.509 certificate (600 permissions)
+├── src/                               # Application source code
+├── logs/                              # Application logs
+└── scripts/                           # Deployment scripts
+```
+
+### **⚙️ Configuration Management**
+
+The server uses a **secure configuration loader** that:
+
+1. **Validates all credentials** before starting
+2. **Checks certificate file permissions** and accessibility  
+3. **Validates Azure AD configuration** (GUIDs, URLs)
+4. **Tests SharePoint connectivity** during startup
+5. **Provides detailed error messages** for troubleshooting
+
+### **🚀 Quick Setup Commands**
+
+```bash
+# 1. Validate your configuration and credentials
+npm run validate
+
+# 2. Set up secure deployment structure
+npm run setup:secure
+
+# 3. Configure systemd service (Linux)
+npm run setup:systemd
+
+# 4. Start with validated configuration
+npm start
+```
+
+### **🔧 Environment File Structure**
+
+Create `.env.production` with your server credentials:
+
+```bash
+# SharePoint Configuration
+SHP_ID_APP=12345678-1234-1234-1234-123456789012
+SHP_TENANT_ID=87654321-4321-4321-4321-210987654321  
+SHP_SITE_URL=https://your-tenant.sharepoint.com/sites/your-site
+SHP_CERT_PFX_PATH=/opt/sharepoint-mcp/certs/certificate.pfx
+SHP_CERT_PFX_PASSWORD=your-certificate-password
+
+# Server Configuration  
+SERVER_MODE=api                                      # or 'mcp' for MCP-only
+PORT=3000
+LOG_LEVEL=info
+
+# API Security (Generate with: openssl rand -hex 32)
+API_AUTH_TOKENS=64-char-token-1,64-char-token-2
+CORS_ORIGINS=https://your-domain.com
+RATE_LIMIT_WINDOW=900000                            # 15 minutes
+RATE_LIMIT_MAX=100                                  # requests per window
+```
+
+### **🔍 Credential Validation**
+
+Before starting the server, validate your setup:
+
+```bash
+npm run validate
+```
+
+This comprehensive validation checks:
+- ✅ Configuration file syntax and required values
+- ✅ Certificate file existence and permissions  
+- ✅ SharePoint authentication and connectivity
+- ✅ File system permissions and security
+- ✅ Network connectivity to Microsoft Graph API
+
+### **⚡ Production Deployment**
+
+```bash
+# 1. Set up secure directory structure
+sudo ./scripts/setup-secure-deployment.sh
+
+# 2. Copy your files to secure locations
+sudo cp certificate.pfx /opt/sharepoint-mcp/certs/
+sudo cp .env.production /opt/sharepoint-mcp/config/
+
+# 3. Set secure file permissions  
+sudo chmod 600 /opt/sharepoint-mcp/certs/certificate.pfx
+sudo chmod 600 /opt/sharepoint-mcp/config/.env.production
+
+# 4. Configure systemd service
+sudo ./scripts/deploy-systemd.sh
+
+# 5. Start the service
+sudo systemctl start sharepoint-mcp
+```
+
+### **🎫 Client Authentication**
+
+Clients authenticate using **your custom API tokens** instead of SharePoint credentials:
+
+```javascript
+// HTTP API Authentication
+const response = await fetch('http://your-server:3000/api/folders', {
+  headers: { 'Authorization': 'Bearer your-custom-token' }
+});
+
+// WebSocket Authentication  
+const ws = new WebSocket('ws://your-server:3000?token=your-custom-token');
+```
+
+**Benefits:**
+- 🔒 SharePoint credentials stay on server
+- 🎛️ Control access with your own tokens
+- 🔄 Rotate tokens without updating SharePoint
+- 📊 Track usage by token/client
+
+---
+
+## �🐳 **Deployment Options**
 
 ### **Docker Deployment**
 ```bash

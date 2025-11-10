@@ -234,7 +234,7 @@ node_modules/            # Dependencies
       "env": {
         "SHP_ID_APP": "your-azure-app-id",
         "SHP_TENANT_ID": "your-tenant-id",
-        "SHP_CERT_PFX_PASSWORD": "y8DauLqAYm8a6M1riHPFN"
+        "SHP_CERT_PFX_PASSWORD": "your-certificate-password"
       }
     }
   }

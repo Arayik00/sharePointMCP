@@ -10,7 +10,13 @@
     "start:api": "SERVER_MODE=api node src/server.js",
     "dev": "node src/server.js",
     "dev:api": "SERVER_MODE=api PORT=3000 node src/server.js",
-    "test": "node test.js"
+    "validate": "node scripts/validate-credentials.js",
+    "test": "node test.js",
+    "test:api": "node test-api-connection.js",
+    "test:connection": "node test-api-connection.js",
+    "test:full": "node test.js",
+    "setup:secure": "chmod +x scripts/setup-secure-deployment.sh && scripts/setup-secure-deployment.sh",
+    "setup:systemd": "chmod +x scripts/deploy-systemd.sh && scripts/deploy-systemd.sh"
   },
   "bin": {
     "mcp-sharepoint-js": "./src/server.js"

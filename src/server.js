@@ -1,30 +1,33 @@
 #!/usr/bin/env node
 
-import { logger } from "./utils/logger.js";
+import { loadConfig, getConfigLoader } from "./config.js";
 
 async function main() {
-  const mode = process.env.SERVER_MODE || process.argv[2] || 'mcp';
-
-  logger.info(`Starting SharePoint server in ${mode} mode...`);
-
   try {
+    // Load and validate configuration first
+    console.log('🚀 Starting SharePoint MCP Server...');
+    const config = await loadConfig();
+    const mode = config.server.mode;
+    
+    console.log(`🔧 Starting SharePoint server in ${mode} mode...`);
+
     if (mode === 'api') {
       // Run as HTTP/WebSocket API server
       const { SharePointAPIServer } = await import('./api-server.js');
-      const apiServer = new SharePointAPIServer();
+      const apiServer = new SharePointAPIServer(config);
       
       const initialized = await apiServer.initialize();
       if (!initialized) {
-        logger.error('Failed to initialize SharePoint client');
+        console.error('❌ Failed to initialize SharePoint client');
         process.exit(1);
       }
       
-      const port = process.env.PORT || 3000;
+      const port = config.server.port;
       apiServer.start(port);
       
       // Graceful shutdown
       process.on('SIGINT', () => {
-        logger.info('Shutting down API server...');
+        console.log('🛑 Shutting down API server...');
         apiServer.stop();
         process.exit(0);
       });
@@ -47,11 +50,11 @@ async function main() {
         }
       );
 
-      const sharePointServer = new SharePointServer();
+      const sharePointServer = new SharePointServer(config);
       const initialized = await sharePointServer.initialize();
 
       if (!initialized) {
-        logger.error("Failed to initialize SharePoint server");
+        console.error("❌ Failed to initialize SharePoint server");
         process.exit(1);
       }
 
@@ -61,15 +64,15 @@ async function main() {
       // Start MCP server
       const transport = new StdioServerTransport();
       await server.connect(transport);
-      logger.info("SharePoint MCP server started successfully");
+      console.log("✅ SharePoint MCP server started successfully");
     }
   } catch (error) {
-    logger.error("Error starting server:", error);
+    console.error("❌ Error starting server:", error);
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  logger.error("Unhandled error:", error);
+  console.error("❌ Unhandled error:", error);
   process.exit(1);
 });
