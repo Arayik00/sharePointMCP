@@ -165,20 +165,65 @@ export function getCertificatePrivateKey(certPath, certPassword = "") {
     
     const certData = fs.readFileSync(certPath);
     console.log(`📋 Certificate file size: ${certData.length} bytes`);
+    console.log(`📋 First 32 bytes (hex): ${certData.slice(0, 32).toString('hex')}`);
+    
+    // Check if this looks like a PKCS#12 file
+    const magicBytes = certData.slice(0, 4);
+    console.log(`📋 Magic bytes: ${magicBytes.toString('hex')}`);
     
     // Try different encoding approaches
     let p12Asn1;
+    let conversionMethod = '';
+    
     try {
-      // First try: direct binary conversion
+      // Method 1: Direct binary conversion
+      conversionMethod = 'binary string';
+      console.log(`🔧 Trying ${conversionMethod} conversion...`);
       p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
+      console.log(`✅ Success with ${conversionMethod}`);
     } catch (binaryError) {
-      console.log(`⚠️  Binary conversion failed, trying buffer approach: ${binaryError.message}`);
+      console.log(`❌ ${conversionMethod} failed: ${binaryError.message}`);
+      
       try {
-        // Second try: use the buffer directly
+        // Method 2: Using forge binary encoding
+        conversionMethod = 'forge binary encoding';
+        console.log(`🔧 Trying ${conversionMethod}...`);
         p12Asn1 = forge.asn1.fromDer(forge.util.binary.raw.encode(certData));
-      } catch (bufferError) {
-        console.log(`⚠️  Buffer approach failed: ${bufferError.message}`);
-        throw new Error(`Certificate parsing failed with both methods: ${binaryError.message}`);
+        console.log(`✅ Success with ${conversionMethod}`);
+      } catch (forgeError) {
+        console.log(`❌ ${conversionMethod} failed: ${forgeError.message}`);
+        
+        try {
+          // Method 3: Manual byte-by-byte conversion
+          conversionMethod = 'manual byte conversion';
+          console.log(`🔧 Trying ${conversionMethod}...`);
+          let binaryString = '';
+          for (let i = 0; i < certData.length; i++) {
+            binaryString += String.fromCharCode(certData[i]);
+          }
+          p12Asn1 = forge.asn1.fromDer(binaryString);
+          console.log(`✅ Success with ${conversionMethod}`);
+        } catch (manualError) {
+          console.log(`❌ ${conversionMethod} failed: ${manualError.message}`);
+          
+          // Final attempt: Check if file might be base64 encoded
+          try {
+            conversionMethod = 'base64 decoding';
+            console.log(`🔧 Trying ${conversionMethod} (in case file is base64)...`);
+            const base64Data = certData.toString('utf8').replace(/\s/g, '');
+            const decodedData = Buffer.from(base64Data, 'base64');
+            p12Asn1 = forge.asn1.fromDer(decodedData.toString('binary'));
+            console.log(`✅ Success with ${conversionMethod}`);
+          } catch (base64Error) {
+            console.log(`❌ ${conversionMethod} failed: ${base64Error.message}`);
+            
+            throw new Error(`All certificate parsing methods failed. Original errors:
+  Binary: ${binaryError.message}
+  Forge: ${forgeError.message}  
+  Manual: ${manualError.message}
+  Base64: ${base64Error.message}`);
+          }
+        }
       }
     }
     
@@ -209,13 +254,40 @@ export function getCertificateThumbprint(certPath, certPassword = "") {
     
     const certData = fs.readFileSync(certPath);
     
-    // Try different encoding approaches
+    // Use the same robust parsing logic as getCertificatePrivateKey
     let p12Asn1;
+    let conversionMethod = '';
+    
     try {
+      // Method 1: Direct binary conversion
+      conversionMethod = 'binary string';
       p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
     } catch (binaryError) {
-      console.log(`⚠️  Binary conversion failed for thumbprint, trying buffer approach`);
-      p12Asn1 = forge.asn1.fromDer(forge.util.binary.raw.encode(certData));
+      try {
+        // Method 2: Using forge binary encoding
+        conversionMethod = 'forge binary encoding';
+        p12Asn1 = forge.asn1.fromDer(forge.util.binary.raw.encode(certData));
+      } catch (forgeError) {
+        try {
+          // Method 3: Manual byte-by-byte conversion
+          conversionMethod = 'manual byte conversion';
+          let binaryString = '';
+          for (let i = 0; i < certData.length; i++) {
+            binaryString += String.fromCharCode(certData[i]);
+          }
+          p12Asn1 = forge.asn1.fromDer(binaryString);
+        } catch (manualError) {
+          // Final attempt: Check if file might be base64 encoded
+          try {
+            conversionMethod = 'base64 decoding';
+            const base64Data = certData.toString('utf8').replace(/\s/g, '');
+            const decodedData = Buffer.from(base64Data, 'base64');
+            p12Asn1 = forge.asn1.fromDer(decodedData.toString('binary'));
+          } catch (base64Error) {
+            throw new Error(`All thumbprint parsing methods failed: ${binaryError.message}`);
+          }
+        }
+      }
     }
     
     const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, certPassword);
