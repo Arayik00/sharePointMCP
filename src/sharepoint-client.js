@@ -156,13 +156,42 @@ export class SharePointGraphClient {
 // Certificate authentication functions
 export function getCertificatePrivateKey(certPath, certPassword = "") {
   try {
+    console.log(`📋 Reading certificate from: ${certPath}`);
+    
+    // Check if file exists
+    if (!fs.existsSync(certPath)) {
+      throw new Error(`Certificate file not found: ${certPath}`);
+    }
+    
     const certData = fs.readFileSync(certPath);
-    const p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
+    console.log(`📋 Certificate file size: ${certData.length} bytes`);
+    
+    // Try different encoding approaches
+    let p12Asn1;
+    try {
+      // First try: direct binary conversion
+      p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
+    } catch (binaryError) {
+      console.log(`⚠️  Binary conversion failed, trying buffer approach: ${binaryError.message}`);
+      try {
+        // Second try: use the buffer directly
+        p12Asn1 = forge.asn1.fromDer(forge.util.binary.raw.encode(certData));
+      } catch (bufferError) {
+        console.log(`⚠️  Buffer approach failed: ${bufferError.message}`);
+        throw new Error(`Certificate parsing failed with both methods: ${binaryError.message}`);
+      }
+    }
+    
     const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, certPassword);
     
     const keyBags = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag });
     const keyBag = keyBags[forge.pki.oids.pkcs8ShroudedKeyBag][0];
     
+    if (!keyBag || !keyBag.key) {
+      throw new Error('No private key found in certificate');
+    }
+    
+    console.log(`✅ Successfully extracted private key from certificate`);
     return forge.pki.privateKeyToPem(keyBag.key);
   } catch (error) {
     console.error(`❌ Error reading certificate: ${error.message}`);
@@ -172,8 +201,23 @@ export function getCertificatePrivateKey(certPath, certPassword = "") {
 
 export function getCertificateThumbprint(certPath, certPassword = "") {
   try {
+    console.log(`📋 Reading certificate thumbprint from: ${certPath}`);
+    
+    if (!fs.existsSync(certPath)) {
+      throw new Error(`Certificate file not found: ${certPath}`);
+    }
+    
     const certData = fs.readFileSync(certPath);
-    const p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
+    
+    // Try different encoding approaches
+    let p12Asn1;
+    try {
+      p12Asn1 = forge.asn1.fromDer(certData.toString('binary'));
+    } catch (binaryError) {
+      console.log(`⚠️  Binary conversion failed for thumbprint, trying buffer approach`);
+      p12Asn1 = forge.asn1.fromDer(forge.util.binary.raw.encode(certData));
+    }
+    
     const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, certPassword);
     
     const certBags = p12.getBags({ bagType: forge.pki.oids.certBag });

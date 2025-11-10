@@ -15,6 +15,32 @@ class ConfigLoader {
   }
 
   /**
+   * Auto-detect server mode based on environment
+   */
+  detectServerMode() {
+    // Check for common cloud deployment environments
+    if (process.env.RENDER || process.env.RENDER_SERVICE_NAME) {
+      console.log('🌐 Detected Render environment - using API mode');
+      return 'api';
+    }
+    if (process.env.HEROKU_APP_NAME || process.env.DYNO) {
+      console.log('🌐 Detected Heroku environment - using API mode');
+      return 'api';
+    }
+    if (process.env.VERCEL || process.env.NOW_REGION) {
+      console.log('🌐 Detected Vercel environment - using API mode');
+      return 'api';
+    }
+    if (process.env.NODE_ENV === 'production' && process.env.PORT) {
+      console.log('🌐 Detected production environment with PORT - using API mode');
+      return 'api';
+    }
+    
+    console.log('🖥️  Default to MCP mode for local development');
+    return 'mcp';
+  }
+
+  /**
    * Load and validate configuration from environment
    * @returns {Object} Configuration object
    */
@@ -35,7 +61,7 @@ class ConfigLoader {
         certPassword: this.getRequiredEnv('SHP_CERT_PFX_PASSWORD')
       },
       server: {
-        mode: process.env.SERVER_MODE || 'mcp',
+        mode: process.env.SERVER_MODE || this.detectServerMode(),
         port: parseInt(process.env.PORT || '3000'),
         host: process.env.HOST || 'localhost',
         logLevel: process.env.LOG_LEVEL || 'info'
@@ -132,31 +158,49 @@ class ConfigLoader {
   async validateCertificate() {
     const { certPath, certPassword } = this.config.sharepoint;
 
+    // For cloud deployments, provide more flexible validation
+    const isCloudDeployment = process.env.RENDER || process.env.HEROKU_APP_NAME || 
+                             process.env.VERCEL || process.env.NODE_ENV === 'production';
+
     // Check if certificate path is absolute
     if (!path.isAbsolute(certPath)) {
-      throw new Error('❌ SHP_CERT_PFX_PATH must be an absolute path');
+      if (isCloudDeployment) {
+        console.warn('⚠️  Certificate path is not absolute, attempting to resolve relative to project root');
+        // Try to make it absolute relative to the project root
+        const projectRoot = path.resolve(process.cwd());
+        this.config.sharepoint.certPath = path.resolve(projectRoot, certPath);
+        console.log(`🔧 Resolved certificate path to: ${this.config.sharepoint.certPath}`);
+      } else {
+        throw new Error('❌ SHP_CERT_PFX_PATH must be an absolute path');
+      }
     }
 
     // Check if certificate file exists
     try {
-      const stats = await fs.promises.stat(certPath);
+      const resolvedPath = this.config.sharepoint.certPath;
+      console.log(`🔍 Checking certificate file: ${resolvedPath}`);
+      
+      const stats = await fs.promises.stat(resolvedPath);
       if (!stats.isFile()) {
         throw new Error('❌ Certificate path does not point to a file');
       }
 
       // Check file permissions (should be readable only by owner)
       const mode = stats.mode & parseInt('777', 8);
-      if (mode > parseInt('600', 8)) {
-        console.warn('⚠️  Certificate file has overly permissive permissions. Consider: chmod 600 ' + certPath);
+      if (mode > parseInt('600', 8) && !isCloudDeployment) {
+        console.warn('⚠️  Certificate file has overly permissive permissions. Consider: chmod 600 ' + resolvedPath);
       }
 
-      console.log('✅ Certificate file found and accessible');
+      console.log(`✅ Certificate file found and accessible (${stats.size} bytes)`);
     } catch (error) {
       if (error.code === 'ENOENT') {
-        throw new Error(`❌ Certificate file not found: ${certPath}`);
+        const suggestion = isCloudDeployment 
+          ? 'Make sure the certificate file is properly uploaded to your deployment environment.'
+          : 'Check the file path and ensure the certificate file exists.';
+        throw new Error(`❌ Certificate file not found: ${this.config.sharepoint.certPath}\n   ${suggestion}`);
       }
       if (error.code === 'EACCES') {
-        throw new Error(`❌ Cannot access certificate file: ${certPath}`);
+        throw new Error(`❌ Cannot access certificate file: ${this.config.sharepoint.certPath}`);
       }
       throw error;
     }

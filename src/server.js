@@ -18,8 +18,9 @@ async function main() {
       
       const initialized = await apiServer.initialize();
       if (!initialized) {
-        console.error('❌ Failed to initialize SharePoint client');
-        process.exit(1);
+        console.error('❌ Failed to initialize SharePoint client - starting server anyway for debugging');
+        console.error('🔧 Server will be available but SharePoint operations will fail');
+        console.error('📋 Check /health endpoint for more information');
       }
       
       const port = config.server.port;
