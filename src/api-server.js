@@ -262,6 +262,7 @@ export class SharePointAPIServer {
     try {
       // Initialize SharePoint client with server-side credentials
       console.log('🔧 Initializing SharePoint client...');
+      const client = await createSharePointClient(this.config);
       this.sharePointTools = new SharePointTools(client);
       console.log('✅ SharePoint client initialized successfully');
       return true;
