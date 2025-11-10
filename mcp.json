@@ -1,12 +1,12 @@
 {
 	"servers": {
-		// PRODUCTION SERVER - SharePoint via API Server
+		// PRODUCTION SERVER - SharePoint via API Server ✅ READY TO USE
 		"sharepoint-api": {
 			"command": "node",
 			"args": ["src/mcp-api-client.js"],
 			"env": {
-				"SHAREPOINT_API_URL": "https://your-server.onrender.com",
-				"SHAREPOINT_API_TOKEN": "your-64-character-api-token-here"
+				"SHAREPOINT_API_URL": "https://arayik-mcp-gdrive.onrender.com",
+				"SHAREPOINT_API_TOKEN": "1098b157ac5dba88ac7d7284d5366eabddc273aa0080e60665cbbd6490fb9bbf"
 			}
 		},
 		
