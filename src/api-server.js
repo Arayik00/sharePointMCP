@@ -101,7 +101,12 @@ export class SharePointAPIServer {
           'GET /api/documents - List SharePoint documents',
           'GET /api/tree - Get folder tree structure',
           'GET /api/document/:path/content - Get document content',
-          'POST /api/upload - Upload document'
+          'POST /api/upload - Upload document',
+          'POST /api/folder - Create new folder',
+          'PUT /api/document/:path - Update document content',
+          'DELETE /api/item/:path - Delete file or folder',
+          'DELETE /api/document/:path - Delete document (alias)',
+          'DELETE /api/folder/:path - Delete folder (alias)'
         ]
       });
     });
@@ -168,15 +173,189 @@ export class SharePointAPIServer {
       }
     });
 
-    // Upload endpoint (if needed later)
+    // Upload endpoint - JSON-based for simplicity
     this.app.post('/api/upload', async (req, res) => {
       try {
-        const { folderPath, fileName, content } = req.body;
-        // Implementation would go here
-        res.json({ message: 'Upload endpoint - not implemented yet' });
+        const { fileName, content, folderPath = '' } = req.body;
+        
+        if (!fileName || !content) {
+          return res.status(400).json({ 
+            error: 'Missing required fields',
+            message: 'fileName and content are required in JSON body'
+          });
+        }
+
+        console.log(`📤 API Upload request: ${fileName} to folder: "${folderPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        // Content should be a string (for text files) or base64 (for binary files)
+        const contentStr = content;
+        
+        const result = await this.sharePointTools.uploadDocument(folderPath, fileName, contentStr);
+        
+        console.log(`✅ Upload successful: ${fileName}`);
+        res.json(result);
+        
       } catch (error) {
         console.error('❌ API Error - upload:', error);
-        res.status(500).json({ error: 'Internal server error', message: error.message });
+        res.status(500).json({ 
+          error: 'Upload failed', 
+          message: error.message,
+          details: 'Check server logs for more information'
+        });
+      }
+    });
+
+    // CREATE folder endpoint
+    this.app.post('/api/folder', async (req, res) => {
+      try {
+        const { folderName, parentPath = '' } = req.body;
+        
+        if (!folderName) {
+          return res.status(400).json({ 
+            error: 'Missing required field',
+            message: 'folderName is required in JSON body'
+          });
+        }
+
+        console.log(`📁 API Create folder request: "${folderName}" in "${parentPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        const result = await this.sharePointTools.createFolder(parentPath, folderName);
+        
+        console.log(`✅ Folder created: ${folderName}`);
+        res.json(result);
+        
+      } catch (error) {
+        console.error('❌ API Error - create folder:', error);
+        res.status(500).json({ 
+          error: 'Folder creation failed', 
+          message: error.message
+        });
+      }
+    });
+
+    // UPDATE document endpoint
+    this.app.put('/api/document/:path', async (req, res) => {
+      try {
+        const documentPath = decodeURIComponent(req.params.path);
+        const { content } = req.body;
+        
+        if (!content) {
+          return res.status(400).json({ 
+            error: 'Missing required field',
+            message: 'content is required in JSON body'
+          });
+        }
+
+        console.log(`📝 API Update document request: "${documentPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        // Extract folder and filename from path
+        const pathParts = documentPath.split('/');
+        const fileName = pathParts.pop();
+        const folderName = pathParts.join('/');
+
+        const result = await this.sharePointTools.updateDocument(folderName, fileName, content);
+        
+        console.log(`✅ Document updated: ${documentPath}`);
+        res.json(result);
+        
+      } catch (error) {
+        console.error('❌ API Error - update document:', error);
+        res.status(500).json({ 
+          error: 'Document update failed', 
+          message: error.message
+        });
+      }
+    });
+
+    // DELETE item endpoint (works for both files and folders)
+    this.app.delete('/api/item/:path', async (req, res) => {
+      try {
+        const itemPath = decodeURIComponent(req.params.path);
+
+        console.log(`🗑️ API Delete item request: "${itemPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        const result = await this.sharePointTools.deleteItem(itemPath);
+        
+        console.log(`✅ Item deleted: ${itemPath}`);
+        res.json(result);
+        
+      } catch (error) {
+        console.error('❌ API Error - delete item:', error);
+        res.status(500).json({ 
+          error: 'Delete failed', 
+          message: error.message
+        });
+      }
+    });
+
+    // Convenience endpoints for specific delete operations
+    this.app.delete('/api/document/:path', async (req, res) => {
+      try {
+        const itemPath = decodeURIComponent(req.params.path);
+        console.log(`🗑️ API Delete document request: "${itemPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        const result = await this.sharePointTools.deleteItem(itemPath);
+        console.log(`✅ Document deleted: ${itemPath}`);
+        res.json(result);
+      } catch (error) {
+        console.error('❌ API Error - delete document:', error);
+        res.status(500).json({ error: 'Delete failed', message: error.message });
+      }
+    });
+
+    this.app.delete('/api/folder/:path', async (req, res) => {
+      try {
+        const itemPath = decodeURIComponent(req.params.path);
+        console.log(`🗑️ API Delete folder request: "${itemPath}"`);
+        
+        if (!this.sharePointTools) {
+          return res.status(503).json({ 
+            error: 'SharePoint not available',
+            message: 'SharePoint client is not initialized'
+          });
+        }
+
+        const result = await this.sharePointTools.deleteItem(itemPath);
+        console.log(`✅ Folder deleted: ${itemPath}`);
+        res.json(result);
+      } catch (error) {
+        console.error('❌ API Error - delete folder:', error);
+        res.status(500).json({ error: 'Delete failed', message: error.message });
       }
     });
 
@@ -189,7 +368,12 @@ export class SharePointAPIServer {
           'GET /api/documents': 'List documents (query: folderName)',
           'GET /api/tree': 'Get folder tree (query: folderPath, maxDepth)',
           'GET /api/document/:path/content': 'Get document content',
-          'POST /api/upload': 'Upload file (body: folderPath, fileName, content)'
+          'POST /api/upload': 'Upload file (body: folderPath, fileName, content)',
+          'POST /api/folder': 'Create folder (body: folderName, parentPath)',
+          'PUT /api/document/:path': 'Update document (body: content)',
+          'DELETE /api/item/:path': 'Delete file or folder',
+          'DELETE /api/document/:path': 'Delete document (alias for /api/item)',
+          'DELETE /api/folder/:path': 'Delete folder (alias for /api/item)'
         },
         authentication: 'Bearer token or X-API-Token header required'
       });
