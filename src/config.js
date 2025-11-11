@@ -58,7 +58,8 @@ class ConfigLoader {
         tenantId: this.getRequiredEnv('SHP_TENANT_ID'),
         siteUrl: this.getRequiredEnv('SHP_SITE_URL'),
         certPath: this.getRequiredEnv('SHP_CERT_PFX_PATH'),
-        certPassword: this.getRequiredEnv('SHP_CERT_PFX_PASSWORD')
+        certPassword: this.getRequiredEnv('SHP_CERT_PFX_PASSWORD'),
+        docLibrary: this.getOptionalEnv('SHP_DOC_LIBRARY', '')
       },
       server: {
         mode: process.env.SERVER_MODE || this.detectServerMode(),

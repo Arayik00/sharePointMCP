@@ -447,7 +447,7 @@ export class SharePointAPIServer {
       // Initialize SharePoint client with server-side credentials
       console.log('🔧 Initializing SharePoint client...');
       const client = await createSharePointClient(this.config);
-      this.sharePointTools = new SharePointTools(client);
+      this.sharePointTools = new SharePointTools(client, this.config);
       console.log('✅ SharePoint client initialized successfully');
       return true;
     } catch (error) {

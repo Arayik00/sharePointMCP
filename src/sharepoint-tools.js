@@ -1,19 +1,21 @@
 import { logger } from "./utils/logger.js";
-import { config } from "./utils/config.js";
+import { config as defaultConfig } from "./utils/config.js";
 
 export class SharePointTools {
-  constructor(client) {
+  constructor(client, config = null) {
     this.client = client;
+    this.config = config || defaultConfig;
   }
 
   getDrivePath(folder = "") {
     // When config.docLibrary is empty, we're working directly in the Documents drive root
-    if (!config.docLibrary || config.docLibrary.trim() === "") {
+    const docLibrary = this.config.sharepoint?.docLibrary || this.config.docLibrary || this.config.DOC_LIBRARY || "";
+    if (!docLibrary || docLibrary.trim() === "") {
       return folder.replace(/^\/+|\/+$/g, ""); // Remove leading/trailing slashes
     }
 
     // For non-empty config.docLibrary, combine with folder
-    const docLibParts = config.docLibrary.replace(/^\/+|\/+$/g, "").split("/");
+    const docLibParts = docLibrary.replace(/^\/+|\/+$/g, "").split("/");
     const basePath = docLibParts.join("/");
 
     if (folder) {
