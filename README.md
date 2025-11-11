@@ -37,12 +37,14 @@ A **next-generation MCP Server** for seamless integration with Microsoft SharePo
 
 ## ✨ **Key Features**
 
-### **📁 SharePoint Operations**
-- **📂 Folder Management** - List, create, and navigate folder structures
-- **📄 Document Operations** - Upload, download, read, update, and delete files
-- **🌳 Tree View** - Recursive folder structures with configurable depth
-- **🔍 Content Reading** - Access document content with automatic text/binary detection
-- **🏷️ Metadata Access** - File properties, sizes, modification dates, URLs
+### **📁 Complete CRUD Operations**
+- **� READ** - List folders, browse documents, get content, navigate trees
+- **� CREATE** - Upload documents, create folders, organize content
+- **✏️ UPDATE** - Modify document content, update file properties
+- **🗑️ DELETE** - Remove files and folders with comprehensive cleanup
+- **🌳 Tree Navigation** - Recursive folder structures with configurable depth
+- **🔍 Content Access** - Document content with automatic text/binary detection
+- **🏷️ Rich Metadata** - File properties, sizes, modification dates, SharePoint URLs
 
 ### **🔐 Security & Authentication**
 - **🔒 Certificate Authentication** - Secure X.509 certificate-based auth
@@ -73,10 +75,23 @@ A **next-generation MCP Server** for seamless integration with Microsoft SharePo
 9. **`Delete_SharePoint_Item`** - Delete files or folders
 
 ### **API Server Endpoints** (HTTP/WebSocket)
+**📖 READ Operations:**
 - **`GET /api/folders`** - List folders
 - **`GET /api/documents`** - List documents
 - **`GET /api/tree`** - Get folder tree
 - **`GET /api/document/:path/content`** - Get document content
+
+**📝 CREATE Operations:**
+- **`POST /api/upload`** - Upload documents
+- **`POST /api/folder`** - Create new folders
+
+**✏️ UPDATE Operations:**
+- **`PUT /api/document/:path`** - Update document content
+
+**🗑️ DELETE Operations:**
+- **`DELETE /api/item/:path`** - Delete any file or folder
+- **`DELETE /api/document/:path`** - Delete document (alias)
+- **`DELETE /api/folder/:path`** - Delete folder (alias)
 - **`POST /api/upload`** - Upload files
 - **`GET /health`** - Server health check
 
@@ -632,6 +647,105 @@ Add to your Claude Desktop configuration:
    npm run build
    npm start
    ```
+
+## 🧪 **API Usage Examples**
+
+### **Authentication**
+All API endpoints require authentication. Use your API token:
+
+```bash
+# Set your API token
+export API_TOKEN="your-64-character-api-token-here"
+export SERVER_URL="https://your-server.onrender.com"
+```
+
+### **📖 READ Operations**
+
+```bash
+# List all folders
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api/folders"
+
+# List documents in a specific folder
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api/documents?folderName=General"
+
+# Get folder tree structure
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api/tree"
+
+# Get document content
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api/document/test.txt/content"
+```
+
+### **📝 CREATE Operations**
+
+```bash
+# Upload a document (JSON-based)
+curl -X POST \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileName": "hello-world.txt",
+    "content": "Hello from SharePoint MCP!",
+    "folderPath": ""
+  }' \
+  "$SERVER_URL/api/upload"
+
+# Create a new folder
+curl -X POST \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "folderName": "New Project",
+    "parentPath": ""
+  }' \
+  "$SERVER_URL/api/folder"
+```
+
+### **✏️ UPDATE Operations**
+
+```bash
+# Update document content
+curl -X PUT \
+  -H "Authorization: Bearer $API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Updated content for the document"
+  }' \
+  "$SERVER_URL/api/document/hello-world.txt"
+```
+
+### **🗑️ DELETE Operations**
+
+```bash
+# Delete a document
+curl -X DELETE \
+  -H "Authorization: Bearer $API_TOKEN" \
+  "$SERVER_URL/api/document/hello-world.txt"
+
+# Delete a folder
+curl -X DELETE \
+  -H "Authorization: Bearer $API_TOKEN" \
+  "$SERVER_URL/api/folder/Old%20Project"
+
+# Delete any item (universal endpoint)
+curl -X DELETE \
+  -H "Authorization: Bearer $API_TOKEN" \
+  "$SERVER_URL/api/item/path/to/item"
+```
+
+### **🏥 Health Check**
+
+```bash
+# Check server status
+curl "$SERVER_URL/health"
+
+# Validate API token
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api/auth/validate"
+
+# List all available endpoints
+curl -H "Authorization: Bearer $API_TOKEN" "$SERVER_URL/api"
+```
+
+---
 
 ### Testing
 

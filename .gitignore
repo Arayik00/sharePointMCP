@@ -58,4 +58,4 @@ coverage/
 *.zip
 *.tar.gz
 *.tar.bz2
-*.7z
+*.7zmcp-local.json

@@ -17,7 +17,7 @@
 			"env": {
 				"SHP_ID_APP": "your-azure-app-id-here",
 				"SHP_SITE_URL": "https://your-tenant.sharepoint.com/sites/your-site",
-				"SHP_DOC_LIBRARY": "Shared Documents",
+				"SHP_DOC_LIBRARY": "Shared Documents/E2E Automation",
 				"SHP_TENANT_ID": "your-azure-tenant-id-here",
 				"SHP_MAX_DEPTH": "15",
 				"SHP_MAX_FOLDERS_PER_LEVEL": "100",
