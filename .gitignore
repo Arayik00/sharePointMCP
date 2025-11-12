@@ -58,4 +58,7 @@ coverage/
 *.zip
 *.tar.gz
 *.tar.bz2
-*.7zmcp-local.json
+*.7z
+
+# Local configuration files (never commit these)
+mcp-local.json

@@ -1,4 +1,4 @@
-# Use Node.js LTS
+# Use Node.js LTS (Alpine for smaller image size)
 FROM node:18-alpine
 
 # Set working directory
@@ -7,11 +7,12 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --production
+# Install production dependencies only
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy source code
+# Copy source code and necessary files
 COPY src/ ./src/
+COPY server.js ./
 
 # Create directory for certificate
 RUN mkdir -p /app/certs
@@ -19,11 +20,18 @@ RUN mkdir -p /app/certs
 # Set permissions
 RUN chmod 755 /app/certs
 
-# Expose port (if needed for health checks)
+# Expose port for API server mode
 EXPOSE 3000
 
-# Set user for security
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Set user for security (run as non-root)
 USER node
 
-# Start the MCP server
+# Set default environment
+ENV NODE_ENV=production
+
+# Start the server (defaults to start.js for robustness)
 CMD ["npm", "start"]

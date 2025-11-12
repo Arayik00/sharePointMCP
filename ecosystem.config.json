@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "mcp-sharepoint-api",
+      "name": "sharepoint-mcp-api",
       "script": "src/server.js",
       "args": ["api"],
       "cwd": "/opt/mcp-sharepoint",
@@ -10,19 +10,27 @@
       "env": {
         "NODE_ENV": "production",
         "SERVER_MODE": "api",
-        "PORT": "3000"
+        "PORT": "3000",
+        "LOG_LEVEL": "info"
       },
-      "env_file": ".env",
-      "log_file": "logs/api-server.log",
+      "env_file": ".env.production",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "log_file": "logs/api-combined.log",
       "error_file": "logs/api-error.log",
       "out_file": "logs/api-out.log",
       "pid_file": "pids/api-server.pid",
+      "merge_logs": true,
+      "autorestart": true,
       "restart_delay": 4000,
       "max_restarts": 10,
-      "min_uptime": "10s"
+      "min_uptime": "10s",
+      "max_memory_restart": "500M",
+      "kill_timeout": 5000,
+      "listen_timeout": 3000,
+      "watch": false
     },
     {
-      "name": "mcp-sharepoint-mcp",
+      "name": "sharepoint-mcp-stdio",
       "script": "src/server.js",
       "args": ["mcp"],
       "cwd": "/opt/mcp-sharepoint",
@@ -30,16 +38,23 @@
       "exec_mode": "fork",
       "env": {
         "NODE_ENV": "production",
-        "SERVER_MODE": "mcp"
+        "SERVER_MODE": "mcp",
+        "LOG_LEVEL": "info"
       },
-      "env_file": ".env",
-      "log_file": "logs/mcp-server.log",
+      "env_file": ".env.production",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "log_file": "logs/mcp-combined.log",
       "error_file": "logs/mcp-error.log",
       "out_file": "logs/mcp-out.log",
       "pid_file": "pids/mcp-server.pid",
+      "merge_logs": true,
+      "autorestart": true,
       "restart_delay": 4000,
       "max_restarts": 10,
-      "min_uptime": "10s"
+      "min_uptime": "10s",
+      "max_memory_restart": "500M",
+      "kill_timeout": 5000,
+      "watch": false
     }
   ]
 }

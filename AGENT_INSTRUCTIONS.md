@@ -91,7 +91,7 @@ This is a **next-generation MCP server** that provides enterprise-grade SharePoi
 **Configuration**:
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "sharepoint-local": {
       "command": "node",
       "args": ["src/server.js", "mcp"],
@@ -131,7 +131,7 @@ This is a **next-generation MCP server** that provides enterprise-grade SharePoi
 **Configuration**:
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "sharepoint-api": {
       "command": "node",
       "args": ["src/mcp-api-client.js"],
@@ -1693,7 +1693,7 @@ console.log('🎉 Production Demo Completed:', result);
 #### **Direct MCP Mode Setup**
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "sharepoint-production": {
       "command": "node",
       "args": ["/Users/arayik/sharePointMCP/src/server.js", "mcp"],
@@ -1717,7 +1717,7 @@ console.log('🎉 Production Demo Completed:', result);
 #### **API Client Mode Setup**  
 ```json
 {
-  "servers": {
+  "mcpServers": {
     "sharepoint-api": {
       "command": "node", 
       "args": ["/Users/arayik/sharePointMCP/src/mcp-api-client.js"],
@@ -1763,7 +1763,7 @@ SHP_MAX_FOLDERS_PER_LEVEL="100" \
 SHP_LEVEL_DELAY="0.5" \
 SHP_CERT_PFX_PATH="./certificate.pfx" \
 SHP_CERT_PFX_PASSWORD="your-cert-password" \
-node src/index.js
+node src/server.js mcp
 ```
 
 **Note**: For now, environment variables need to be set manually as shown above. Use the actual values from the `env` section in `mcp.json`. The server does not automatically read from `mcp.json` when run standalone.

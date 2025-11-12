@@ -383,8 +383,9 @@ npm install -g pm2
 pm2 start ecosystem.config.json
 
 # Or start individual services
-pm2 start ecosystem.config.json --only mcp-sharepoint-api
-pm2 start ecosystem.config.json --only mcp-sharepoint-mcp
+# Start API server only
+pm2 start ecosystem.config.json --only sharepoint-mcp-api
+pm2 start ecosystem.config.json --only sharepoint-mcp-stdio
 ```
 
 ### **Systemd Service**

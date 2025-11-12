@@ -70,7 +70,8 @@ sudo chown mcp:mcp /opt/mcp-sharepoint/certificate.pfx
 npm run start:api
 
 # OR with PM2 (recommended)
-pm2 start ecosystem.config.json --only mcp-sharepoint-api
+# Start only API server
+pm2 start ecosystem.config.json --only sharepoint-mcp-api
 pm2 save
 pm2 startup
 ```
@@ -81,7 +82,8 @@ pm2 startup
 npm run start:mcp
 
 # OR with PM2
-pm2 start ecosystem.config.json --only mcp-sharepoint-mcp
+# Start only MCP stdio server
+pm2 start ecosystem.config.json --only sharepoint-mcp-stdio
 ```
 
 ---

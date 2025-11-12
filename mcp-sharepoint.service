@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=mcp
 WorkingDirectory=/opt/mcp-sharepoint
-ExecStart=/usr/bin/node src/index.js
+ExecStart=/usr/bin/node src/server.js mcp
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production

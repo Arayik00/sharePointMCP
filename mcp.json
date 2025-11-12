@@ -1,5 +1,5 @@
 {
-	"servers": {
+	"mcpServers": {
 		// PRODUCTION SERVER - SharePoint via API Server
 		"sharepoint-api": {
 			"command": "node",
@@ -29,9 +29,9 @@
 		
 		// TEMPLATE CONFIGURATION - Uncomment and modify for other SharePoint sites
 		/*
-		"sharepoint-js-template": {
+		"sharepoint-custom": {
 			"command": "node",
-			"args": ["src/index.js"],
+			"args": ["src/server.js", "mcp"],
 			"env": {
 				"SHP_ID_APP": "your-azure-app-id",
 				"SHP_SITE_URL": "https://your-tenant.sharepoint.com/sites/your-site",

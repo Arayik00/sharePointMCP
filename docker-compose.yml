@@ -3,20 +3,44 @@ version: '3.8'
 services:
   mcp-sharepoint:
     build: .
+    container_name: sharepoint-mcp-server
     environment:
+      # SharePoint Configuration
       - SHP_ID_APP=${SHP_ID_APP}
       - SHP_SITE_URL=${SHP_SITE_URL}
       - SHP_DOC_LIBRARY=${SHP_DOC_LIBRARY}
       - SHP_TENANT_ID=${SHP_TENANT_ID}
-      - SHP_MAX_DEPTH=${SHP_MAX_DEPTH}
-      - SHP_MAX_FOLDERS_PER_LEVEL=${SHP_MAX_FOLDERS_PER_LEVEL}
-      - SHP_LEVEL_DELAY=${SHP_LEVEL_DELAY}
+      
+      # Performance Configuration
+      - SHP_MAX_DEPTH=${SHP_MAX_DEPTH:-15}
+      - SHP_MAX_FOLDERS_PER_LEVEL=${SHP_MAX_FOLDERS_PER_LEVEL:-100}
+      - SHP_LEVEL_DELAY=${SHP_LEVEL_DELAY:-0.5}
+      
+      # Certificate Configuration
       - SHP_CERT_PFX_PATH=/app/certs/certificate.pfx
       - SHP_CERT_PFX_PASSWORD=${SHP_CERT_PFX_PASSWORD}
+      
+      # Server Configuration
+      - SERVER_MODE=${SERVER_MODE:-mcp}
+      - PORT=${PORT:-3000}
       - NODE_ENV=production
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
+      # Mount certificate as read-only
       - ./certificate.pfx:/app/certs/certificate.pfx:ro
+      # Mount logs directory for persistence
       - ./logs:/app/logs
+    ports:
+      # Expose API server port (only needed in API mode)
+      - "${PORT:-3000}:3000"
     restart: unless-stopped
+    # Keep stdin/tty for MCP stdio communication
     stdin_open: true
     tty: true
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

@@ -1,8 +1,8 @@
 {
   "name": "mcp-sharepoint-js",
   "version": "0.1.0",
-  "description": "MCP Server to integrate with SharePoint (JavaScript)",
-  "main": "server.js",
+  "description": "Next-generation MCP Server for Microsoft SharePoint integration with dual-mode architecture (MCP + HTTP API)",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
     "start": "node src/start.js",
@@ -25,13 +25,31 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "sharepoint",
+    "microsoft-graph",
     "microsoft",
-    "graph",
-    "server"
+    "graph-api",
+    "api-server",
+    "certificate-auth",
+    "enterprise",
+    "automation",
+    "ai-integration"
   ],
-  "author": "Your Name",
+  "author": "Arayik Harutyunyan",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Arayik00/sharePointMCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Arayik00/sharePointMCP/issues"
+  },
+  "homepage": "https://github.com/Arayik00/sharePointMCP#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "@azure/msal-node": "^2.15.0",
     "@modelcontextprotocol/sdk": "^1.0.3",
