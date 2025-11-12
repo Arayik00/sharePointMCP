@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "sharepoint-api": {
+      "command": "node",
+      "args": ["src/mcp-api-client.js"],
+      "env": {
+        "SHAREPOINT_API_URL": "https://server.com",
+        "SHAREPOINT_API_TOKEN": "secretKey"
+      }
+    }
+  }
+}
